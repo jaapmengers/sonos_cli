@@ -1,0 +1,26 @@
+{
+  "name": "sonos_cli",
+  "version": "0.0.0",
+  "description": "Sonos Command Line Interface",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jaapmengers/sonos_cli.git"
+  },
+  "bin" : {
+    "sonos": "index.js"    
+  },
+  "dependencies" : {
+    "cli": "0.4.5",
+    "sonos": "0.4.0",
+    "q": "1.0.1"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/jaapmengers/sonos_cli/issues"
+  }
+}
