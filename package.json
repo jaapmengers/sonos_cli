@@ -16,7 +16,9 @@
   "dependencies" : {
     "cli": "0.4.5",
     "sonos": "0.4.0",
-    "q": "1.0.1"
+    "q": "1.0.1",
+    "http" : "*",
+    "underscore": "*"
   },
   "author": "",
   "license": "BSD-2-Clause",
