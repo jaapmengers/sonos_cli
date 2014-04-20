@@ -15,6 +15,10 @@ var rl = readline.createInterface({
 
 var device;
 
+cli.parse({
+	play: ['p', 'Play whichever track is currently queued', 'string'],
+	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ]
+});
 
 sonos.Sonos.prototype.enqueueSpotify = function(uri){
 	var encodedUri = encodeURIComponent(uri);
@@ -34,19 +38,33 @@ sonos.Sonos.prototype.enqueueSpotify = function(uri){
          <EnqueueAsNext>0</EnqueueAsNext> \
       </u:AddURIToQueue>';
 
-  return this.request(RENDERING_ENDPOINT, action, body, null, function(err, data){
-  	
-  });
+	var defer = Q.defer();	
+
+   	this.request(RENDERING_ENDPOINT, action, body, 'u:AddURIToQueueResponse', function(err, data){
+	  	var newIndex =  _.reduce(data[0].FirstTrackNumberEnqueued, function(it, num){
+	  		return parseInt(num);
+	  	}, 0);
+	  	defer.resolve(newIndex);
+  	});
+
+   	return defer.promise;
 }
 
-cli.parse({
-	play: ['p', 'Play whichever track is currently queued', 'string'],
-	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ]
-});
+sonos.Sonos.prototype.seekTrackNr = function(nr){
+	var RENDERING_ENDPOINT = '/MediaRenderer/AVTransport/Control';
+  	var action = '"urn:schemas-upnp-org:service:AVTransport:1#Seek"';
+  	var body = '<s:Body><u:Seek xmlns:u="urn:schemas-upnp-org:service:AVTransport:1"><InstanceID>0</InstanceID><Unit>TRACK_NR</Unit><Target>' + nr + '</Target></u:Seek>';
+
+  	var defer = Q.defer();
+
+   	this.request(RENDERING_ENDPOINT, action, body, 'u:AddURIToQueueResponse', function(err, data){
+	  	defer.resolve();
+  	});
+  	return defer.promise;
+}
 
 
 cli.main(function(args, options){
-
 
 	var deferred = Q.defer();
 
@@ -59,9 +77,16 @@ cli.main(function(args, options){
 
 		device = _device;
 
-		if(options.search){
-			var artistSelection = getArtists(options.search).then(selectArtist);
+		if(options.play){
+			device.enqueueSpotify(options.play).then(function(nr){
+				device.seekTrackNr(nr);
+			}).then(function(){
+				device.play(function(){ });
+			});
+		}
 
+		if(options.search){
+			getArtists(options.search).then(selectArtist);
 		}
 	});
 });
@@ -100,9 +125,12 @@ function selectAlbum(albums){
 }
 
 function playTrack(track){
-	device.enqueueSpotify(track.href);
-	device.play(function(err, data){
-		process.exit(0);
+	device.enqueueSpotify(track.href).then(function(nr){
+		device.seekTrackNr(nr).then(function(){
+			device.play(function(err, data){
+					process.exit(0);
+			});
+		})
 	});
 }
 
