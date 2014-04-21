@@ -2,7 +2,7 @@ sonos_cli
 =========
 
 This NPM package provides CLI playback control for those who exclusively or primarily use Sonos with Spotify.
-It enables you to search artists, albums and tracks on Spotify, queue them and do some basic playback control.
+It enables you to search artists, albums and tracks on Spotify, queue them and do some basic playback control. If you have not done so, you will first need to configure your Spotify account from within the Sonos app.
 
 Install with NPM: ```npm install sonos_cli```
 
