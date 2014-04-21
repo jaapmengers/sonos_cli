@@ -26,7 +26,8 @@ cli.parse({
 	unmute: ['um', 'Unmute'],
 	browse: ['b', 'Browse the current list of enqueued tracks'],
 	next: ['n', 'Plays the next track in the queue'],
-	previous: ['pr', "Plays the previous track in the queue"]
+	previous: ['pr', 'Plays the previous track in the queue'],
+	current: ['c', 'Shows the track currently playing']
 });
 
 sonos.Sonos.prototype.browse = function(){
@@ -170,6 +171,13 @@ cli.main(function(args, options){
 
 		if(options.previous){
 			device.previous(function(){
+				process.exit(0);
+			});
+		}
+
+		if(options.current){
+			device.currentTrack(function(err, result){
+				console.log(result.artist + ' - ' + result.title);
 				process.exit(0);
 			});
 		}
