@@ -19,14 +19,14 @@ var device;
 
 cli.parse({
 	play: ['p', 'Play whichever track is currently queued'],
-	pause: ['ps', 'Pause playback'],
+	pause: ['u', 'Pause playback'],
 	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ],
-	addandplay: ['ap', 'Add a track or an album by spotify URI and play it', 'string'],
+	addandplay: ['a', 'Add a track or an album by spotify URI and play it', 'string'],
 	mute: ['m', 'Mute'],
-	unmute: ['um', 'Unmute'],
-	browse: ['b', 'Browse the current list of enqueued tracks'],
+	unmute: ['u', 'Unmute'],
+	browse: ['b', 'Browse the list of enqueued tracks'],
 	next: ['n', 'Plays the next track in the queue'],
-	previous: ['pr', 'Plays the previous track in the queue'],
+	previous: ['r', 'Plays the previous track in the queue'],
 	current: ['c', 'Shows the track currently playing']
 });
 
