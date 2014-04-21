@@ -24,7 +24,9 @@ cli.parse({
 	addandplay: ['ap', 'Add a track or an album by spotify URI and play it', 'string'],
 	mute: ['m', 'Mute'],
 	unmute: ['um', 'Unmute'],
-	browse: ['b', 'Browse the current list of enqueued tracks']
+	browse: ['b', 'Browse the current list of enqueued tracks'],
+	next: ['n', 'Plays the next track in the queue'],
+	previous: ['pr', "Plays the previous track in the queue"]
 });
 
 sonos.Sonos.prototype.browse = function(){
@@ -158,6 +160,18 @@ cli.main(function(args, options){
 
 		if(options.browse){			
 			device.browse().then(showQueue);
+		}
+
+		if(options.next){
+			device.next(function(){
+				process.exit(0);
+			});
+		}
+
+		if(options.previous){
+			device.previous(function(){
+				process.exit(0);
+			});
 		}
 	});
 });
