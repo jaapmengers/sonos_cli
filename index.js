@@ -16,8 +16,12 @@ var rl = readline.createInterface({
 var device;
 
 cli.parse({
-	play: ['p', 'Play whichever track is currently queued', 'string'],
-	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ]
+	play: ['p', 'Play whichever track is currently queued'],
+	pause: ['ps', 'Pause playback'],
+	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ],
+	addandplay: ['ap', 'Add a track or an album by spotify URI and play it', 'string'],
+	mute: ['m', 'Mute'],
+	unmute: ['um', 'Unmute']
 });
 
 
@@ -87,8 +91,8 @@ cli.main(function(args, options){
 
 		device = _device;
 
-		if(options.play){
-			device.enqueueSpotify(options.play).then(function(nr){
+		if(options.addandplay){
+			device.enqueueSpotify(options.addandplay).then(function(nr){
 				device.seekTrackNr(nr);
 			}).then(function(){
 				device.play(function(){ 
@@ -98,7 +102,32 @@ cli.main(function(args, options){
 		}
 
 		if(options.search){
+			//I am not to pleased with the nested promises to handle the flow, but it will have to do for now
 			getArtists(options.search).then(selectArtist);
+		}
+
+		if(options.play){
+			device.play(function(){
+				process.exit(0);
+			});
+		}
+
+		if(options.pause){
+			device.pause(function(){
+				process.exit(0);
+			})
+		}
+
+		if(options.mute){
+			device.setMuted(true, function(){
+				process.exit(0);
+			});
+		}
+
+		if(options.unmute){
+			device.setMuted(false, function(){
+				process.exit(0);
+			})
 		}
 	});
 });
