@@ -1,6 +1,6 @@
 {
   "name": "sonos_cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Sonos Command Line Interface",
   "main": "index.js",
   "scripts": {
