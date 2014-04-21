@@ -20,18 +20,28 @@ cli.parse({
 	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ]
 });
 
+
+
 sonos.Sonos.prototype.enqueueSpotify = function(uri){
+
 	var encodedUri = encodeURIComponent(uri);
+	var isAlbum = uri.indexOf('spotify:album') > -1;
+
+	var audioClass = isAlbum ? 'object.container.album.musicAlbum' : 'object.item.audioItem.musicTrack';
+	var enqueuedURI = isAlbum ? 'x-rincon-cpcontainer:0004006c' + encodedUri : 'x-sonos-spotify:' + encodedUri;
+	var code = isAlbum ? '0004006c' : '00030000';
+
 	var RENDERING_ENDPOINT = '/MediaRenderer/AVTransport/Control';
   	var action = '"urn:schemas-upnp-org:service:AVTransport:1#AddURIToQueue"';
   	var body = '<u:AddURIToQueue xmlns:u="urn:schemas-upnp-org:service:AVTransport:1"> \
          <InstanceID>0</InstanceID> \
-         <EnqueuedURI>x-sonos-spotify:' + encodedUri + '?sid=9&amp;flags=0</EnqueuedURI> \
+         <EnqueuedURI>' + enqueuedURI + '</EnqueuedURI> \
          <EnqueuedURIMetaData> \
          	&lt;DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" \
          	xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" \
-         	xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"&gt;&lt;item id="00030000' + encodedUri + '" \
-         	restricted="true"&gt;&lt;dc:title&gt;America&lt;/dc:title&gt;&lt;upnp:class&gt;object.item.audioItem.musicTrack&lt;/upnp:class&gt;&lt;desc id="cdudn" \
+         	xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"&gt;&lt;item id="' + code + encodedUri + '" \
+         	restricted="true"&gt;&lt;dc:title&gt;America&lt;/dc:title&gt; \
+         	&lt;upnp:class&gt;' + audioClass + '&lt;/upnp:class&gt;&lt;desc id="cdudn" \
          	nameSpace="urn:schemas-rinconnetworks-com:metadata-1-0/"&gt;SA_RINCON2311_X_#Svc2311-0-Token&lt;/desc&gt;&lt;/item&gt;&lt;/DIDL-Lite&gt; \
      	</EnqueuedURIMetaData> \
          <DesiredFirstTrackNumberEnqueued>0</DesiredFirstTrackNumberEnqueued> \
@@ -81,7 +91,9 @@ cli.main(function(args, options){
 			device.enqueueSpotify(options.play).then(function(nr){
 				device.seekTrackNr(nr);
 			}).then(function(){
-				device.play(function(){ });
+				device.play(function(){ 
+					process.exit(0);
+				});
 			});
 		}
 
@@ -97,7 +109,7 @@ function selectArtist(searchResults){
 		console.log(i + '. ' + artist.name);
 	});
 
-	rl.question("Select an artist: ", function(answer){
+	rl.question("\nSelect an artist: ", function(answer){
 		var index = parseInt(answer);
 		var artist = searchResults.artists[index];
 
@@ -114,7 +126,7 @@ function selectAlbum(albums){
 		console.log(i + '. ' + it.album.artist + ' - ' + it.album.name);
 	});
 
-	rl.question('Select an album: ', function(answer){
+	rl.question('\nSelect an album: ', function(answer){
 		var index = parseInt(answer);
 		var it = albums[index];
 		var promise = getTracksForAlbum(it.album);
@@ -125,10 +137,10 @@ function selectAlbum(albums){
 }
 
 function playTrack(track){
-	device.enqueueSpotify(track.href).then(function(nr){
+	device.enqueueSpotify(track).then(function(nr){
 		device.seekTrackNr(nr).then(function(){
 			device.play(function(err, data){
-					process.exit(0);
+				process.exit(0);
 			});
 		})
 	});
@@ -136,13 +148,14 @@ function playTrack(track){
 
 function selectTrack(album){
 	console.log('');
+	console.log('0. Play entire album');
 	_.each(album.tracks, function(track, i){
-		console.log(i + '. ' + album.artist + ' - ' + track.name);
+		console.log(parseInt(i) + 1 + '. ' + album.artist + ' - ' + track.name);
 	});
 
-	rl.question("Select a track: ", function(answer){
+	rl.question("\nSelect a track: ", function(answer){
 		var index = parseInt(answer);
-		var track = album.tracks[index];
+		var track = index > 0 ? album.tracks[index].href : album.href;
 
 		playTrack(track);
 	});
