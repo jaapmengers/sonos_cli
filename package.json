@@ -18,7 +18,9 @@
     "sonos": "0.4.0",
     "q": "1.0.1",
     "http" : "*",
-    "underscore": "*"
+    "underscore": "*",
+    "xml2js": "*",
+    "util": "*"
   },
   "author": "",
   "license": "BSD-2-Clause",

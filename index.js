@@ -1,10 +1,12 @@
 #!/usr/local/bin/node
 
-var cli = require('cli'),
+var util = require('util'),
+	cli = require('cli'),
 	sonos = require('sonos'),
 	Q = require('q'),
 	http = require('http'),
 	_ = require('underscore'),
+	xml2js = require('xml2js'),
 	readline = require('readline');
 
 
@@ -21,10 +23,34 @@ cli.parse({
 	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ],
 	addandplay: ['ap', 'Add a track or an album by spotify URI and play it', 'string'],
 	mute: ['m', 'Mute'],
-	unmute: ['um', 'Unmute']
+	unmute: ['um', 'Unmute'],
+	browse: ['b', 'Browse the current list of enqueued tracks']
 });
 
+sonos.Sonos.prototype.browse = function(){
 
+	var RENDERING_ENDPOINT = '/MediaServer/ContentDirectory/Control';
+  	var action = '"urn:schemas-upnp-org:service:ContentDirectory:1#Browse"';
+	var body = '<u:Browse xmlns:u="urn:schemas-upnp-org:service:ContentDirectory:1"><ObjectID>Q:0</ObjectID><BrowseFlag>BrowseDirectChildren</BrowseFlag><Filter>dc:title,res,dc:creator,upnp:artist,upnp:album,upnp:albumArtURI</Filter><StartingIndex>0</StartingIndex><RequestedCount>100</RequestedCount><SortCriteria></SortCriteria></u:Browse>';
+
+	var defer = Q.defer();
+
+	this.request(RENDERING_ENDPOINT, action, body, 'u:BrowseResponse', function(err, data){
+
+		new xml2js.Parser().parseString(data[0].Result, function(err, didl) {
+      		
+      		var items = [];
+      
+			_.each(didl['DIDL-Lite'].item, function(item, index){
+        		items.push({"title": item['dc:title'][0], "artist": item['dc:creator'][0], "index": index+1});
+        	});
+
+        	defer.resolve(items);
+      	});
+	});
+
+	return defer.promise;
+};
 
 sonos.Sonos.prototype.enqueueSpotify = function(uri){
 
@@ -129,8 +155,28 @@ cli.main(function(args, options){
 				process.exit(0);
 			})
 		}
+
+		if(options.browse){			
+			device.browse().then(showQueue);
+		}
 	});
 });
+
+function showQueue(browseResults){
+	console.log('');
+	_.each(browseResults, function(item, index){
+		console.log(index + '. ', item.artist + ' - ' + item.title);
+	});
+
+	rl.question('\nSelect a track for playback: ', function(answer){
+		var index = parseInt(answer);
+		device.seekTrackNr(browseResults[index].index).then(function(){
+			device.play(function(err, data){
+				process.exit(0);
+			});
+		})
+	})
+}
 
 function selectArtist(searchResults){
 	console.log('');
