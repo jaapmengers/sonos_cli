@@ -112,10 +112,13 @@ sonos.Sonos.prototype.seekTrackNr = function(nr){
 cli.main(function(args, options){
 
 	var deferred = Q.defer();
+	var sonosIP = process.env.PREFERRED_SONOS;
 
-	if(options.device){
-		deferred.resolve(new sonos.Sonos(options.device));
+	if(options.device)
+		sonosIP = options.device;
 
+	if(sonosIP){
+		deferred.resolve(new sonos.Sonos(sonosIP));
 	} else {
 		sonos.search(function(device){
 			deferred.resolve(device);
