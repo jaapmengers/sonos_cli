@@ -1,7 +1,6 @@
 #!/usr/local/bin/node
 
-var util = require('util'),
-	cli = require('cli'),
+var cli = require('cli'),
 	sonos = require('sonos'),
 	Q = require('q'),
 	http = require('http'),
@@ -27,7 +26,8 @@ cli.parse({
 	browse: ['b', 'Browse the list of enqueued tracks'],
 	next: ['n', 'Plays the next track in the queue'],
 	previous: ['r', 'Plays the previous track in the queue'],
-	current: ['c', 'Shows the track currently playing']
+	current: ['c', 'Shows the track currently playing'],
+	device: ['d', 'Connects to the device at the provided IP', 'string']
 });
 
 sonos.Sonos.prototype.browse = function(){
@@ -111,9 +111,14 @@ cli.main(function(args, options){
 
 	var deferred = Q.defer();
 
-	sonos.search(function(device){
-		deferred.resolve(device);
-	});
+	if(options.device){
+		deferred.resolve(new sonos.Sonos(options.device));
+
+	} else {
+		sonos.search(function(device){
+			deferred.resolve(device);
+		});
+	}
 
 
 	deferred.promise.then(function(_device){

@@ -1,6 +1,6 @@
 {
   "name": "sonos_cli",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Sonos Command Line Interface",
   "main": "index.js",
   "scripts": {
@@ -14,13 +14,11 @@
     "sonos": "index.js"    
   },
   "dependencies" : {
-    "cli": "0.4.5",
-    "sonos": "0.4.0",
-    "q": "1.0.1",
-    "http" : "*",
-    "underscore": "*",
-    "xml2js": "*",
-    "util": "*"
+    "cli": "0.4.*",
+    "sonos": "0.4.*",
+    "q": "1.0.*",
+    "underscore": "1.6.*",
+    "xml2js": "0.4.*"
   },
   "author": "",
   "license": "BSD-2-Clause",
