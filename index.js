@@ -21,6 +21,8 @@ cli.parse({
 	pause: ['u', 'Pause playback'],
 	search: ['s', 'Search an artist in Spotify\'s collection', 'string' ],
 	addandplay: ['a', 'Add a track or an album by spotify URI and play it', 'string'],
+	getvolume: ['g', 'Get volume'],
+	setvolume: ['v', 'Set volume, 1..100', 'int'],
 	mute: ['m', 'Mute'],
 	unmute: ['u', 'Unmute'],
 	browse: ['b', 'Browse the list of enqueued tracks'],
@@ -152,6 +154,25 @@ cli.main(function(args, options){
 			})
 		}
 
+		if(options.getvolume){
+			device.getVolume(function(err, volume){
+				console.log('current volume is ' + volume);
+				process.exit(0);
+			})
+		}
+
+		if(options.setvolume !== null){
+			if(options.setvolume > 100 || options.setvolume < 0) {
+				console.log('volume must be between 0 and 100');
+				process.exit(1);
+			}
+
+			device.setVolume(options.setvolume, function(){
+				console.log('volume set to ' + options.setvolume);
+				process.exit(0);
+			})
+		}
+
 		if(options.mute){
 			device.setMuted(true, function(){
 				process.exit(0);
@@ -163,6 +184,7 @@ cli.main(function(args, options){
 				process.exit(0);
 			})
 		}
+
 
 		if(options.browse){			
 			device.browse().then(showQueue);
