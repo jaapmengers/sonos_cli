@@ -13,7 +13,7 @@ Usage:
 Options:
   -p, --play               Play whichever track is currently queued
   -u, --pause              Pause playback
-  -s, --search      STRING Search an artist in Spotify's collection
+  -s, --search      STRING Search an artist in Spotifys collection
   -a, --addandplay  STRING Add a track or an album by spotify URI and play it
   -m, --mute               Mute
   -u, --unmute             Unmute
