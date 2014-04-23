@@ -265,15 +265,15 @@ function selectAlbum(albums){
 
 function playTrack(track, autoplay){
 	device.enqueueSpotify(track).then(function(nr){
-		device.seekTrackNr(nr).then(function(){
-			if(autoplay){
+		if(autoplay){
+			device.seekTrackNr(nr).then(function(){
 				device.play(function(err, data){
 					process.exit(0);
 				});
-			} else {
-				process.exit(0);
-			}	
-		})
+			});
+		} else {
+			process.exit(0);
+		}
 	});
 }
 
@@ -286,7 +286,7 @@ function selectTrack(album){
 
 	rl.question("\nSelect a track. Append 'p' to start playback at first added track (e.g. '3p'): ", function(answer){
 		function play(index, autoplay){
-			var track = index > 0 ? album.tracks[index].href : album.href;
+			var track = index > 0 ? album.tracks[index - 1].href : album.href;
 			playTrack(track, autoplay);
 		}
 
