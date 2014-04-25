@@ -29,7 +29,6 @@ cli.parse({
 	next: ['n', 'Plays the next track in the queue'],
 	previous: ['r', 'Plays the previous track in the queue'],
 	current: ['c', 'Shows the track currently playing'],
-	device: ['d', 'Connects to the device at the provided IP', 'string']
 });
 
 
@@ -38,19 +37,32 @@ cli.parse({
 cli.main(function(args, options){
 
 	var deferred = Q.defer();
-	var sonosIP = process.env.PREFERRED_SONOS;
 
-	if(options.device)
-		sonosIP = options.device;
+	getFirstDevice().then(function(dev) {
+		getSonosGroups(dev).then(function(groups) {
 
-	if(sonosIP){
-		deferred.resolve(new sonos(sonosIP));
-	} else {
-		sonos.search(function(device){
-			deferred.resolve(device);
-		});
-	}
+			if(groups.length == 1)
+				deferred.resolve(new sonos.Sonos(groups[0].host));
+			else {
+				_.each(groups, function(group, i){
+					console.log(i + '. ' + group.devices.join(", "));
+				});
 
+				function askSelectGroup(){
+					rl.question("\nSelect a group: ", function(answer){
+						var index = parseInt(answer);
+						if(index >= 0 && index < groups.length){
+							deferred.resolve(new sonos.Sonos(groups[index].host));
+						} else {
+							console.log("Invalid input");
+							askSelectGroup();
+						}
+					});
+				}
+				askSelectGroup();
+			}
+		})
+	});
 
 	deferred.promise.then(function(_device){
 
@@ -139,6 +151,61 @@ cli.main(function(args, options){
 		}
 	});
 });
+
+function getFirstDevice(){
+	var deferred = Q.defer();
+	sonos.search(function(dev){
+		deferred.resolve(dev);
+
+	})
+	return deferred.promise;
+}
+	
+function getSonosGroups(dev){
+	var deferred = Q.defer();
+	var options = {
+		host: dev.host,
+		path: "/status/topology",
+		port: dev.port,
+		methode: "GET"
+	};
+	http.get(options, function(res) {
+	  var body = '';
+
+	  res.on('data', function(chunk) {
+	      body += chunk;
+	  });
+	  res.on('end', function() {
+			var groups = new Array();
+
+	  	new xml2js.Parser().parseString(body, function(err, xml) {
+	    	_.each(xml["ZPSupportInfo"]["ZonePlayers"][0].ZonePlayer, function(item, index) {
+    			var url = item["$"].coordinator ? item["$"].location.replace("/xml/device_description.xml", "").replace("http://", "") : "";
+    			var host = url != "" ? url.split(":")[0] : "";
+    			var port = url != "" ? url.split(":")[1] : "";
+
+    			function getGroup(id){
+    				return _.find(groups, function(group){ return id == group.id; })
+    			}
+
+    			if(!getGroup(item["$"].group)) {
+	    			groups.push({ id: item["$"].group, devices: [item._], host: host, port: port });
+    			}
+	    		else {
+	    			getGroup(item["$"].group).devices.push(item._);
+	    		}
+	    	});
+	    });
+	    groups = _.sortBy(groups, function(group) {
+	    	return group.id;
+	    })
+	    deferred.resolve(groups);
+	  });	
+	})
+	return deferred.promise;
+}
+
+
 
 function showQueue(browseResults){
 	console.log('');

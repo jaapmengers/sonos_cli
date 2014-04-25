@@ -1,6 +1,7 @@
 var sonos = require('sonos'),
     Q = require('q'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    xml2js = require('xml2js'); 
 
 sonos.Sonos.prototype.browse = function(){
 
@@ -78,4 +79,4 @@ sonos.Sonos.prototype.seekTrackNr = function(nr){
   	return defer.promise;
 }
 
-module.exports.sonos = sonos.Sonos;
+module.exports.sonos = sonos;
