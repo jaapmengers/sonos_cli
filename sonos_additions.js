@@ -1,7 +1,7 @@
 var sonos = require('sonos'),
     Q = require('q'),
-    xml2js = require('xml2js'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    xml2js = require('xml2js'); 
 
 sonos.Sonos.prototype.browse = function(){
 
@@ -123,4 +123,4 @@ sonos.Sonos.prototype.currentTrackWithPlaylistData = function() {
   return defer.promise;
 };
 
-module.exports.sonos = sonos.Sonos;
+module.exports.sonos = sonos;
