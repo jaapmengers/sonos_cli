@@ -162,15 +162,23 @@ function selectArtist(searchResults){
 		console.log(i + '. ' + artist.name);
 	});
 
-	rl.question("\nSelect an artist: ", function(answer){
-		var index = parseInt(answer);
-		var artist = searchResults.artists[index];
+	function askSelectArtist(){
+		rl.question("\nSelect an artist: ", function(answer){
+			var index = parseInt(answer);
+			if(index >= 0 && index < searchResults.artists.length){
+				var artist = searchResults.artists[index];
 
-		var result = getAlbumsForArtist(artist);
-		result.then(function(albums){
-			selectAlbum(albums.artist.albums);
+				var result = getAlbumsForArtist(artist);
+				result.then(function(albums){
+					selectAlbum(albums.artist.albums);
+				});
+			} else {
+				console.log("Invalid input");
+				askSelectArtist();
+			}
 		});
-	});
+	}
+	askSelectArtist();
 }
 
 function selectAlbum(albums){
@@ -179,14 +187,22 @@ function selectAlbum(albums){
 		console.log(i + '. ' + it.album.artist + ' - ' + it.album.name);
 	});
 
-	rl.question('\nSelect an album: ', function(answer){
-		var index = parseInt(answer);
-		var it = albums[index];
-		var promise = getTracksForAlbum(it.album);
-		promise.then(function(tracks){
-			selectTrack(tracks.album);
-		});
-	})
+	function askSelectAlbum(){
+		rl.question('\nSelect an album: ', function(answer){
+			var index = parseInt(answer);
+			if(index >= 0 && index < albums.length) {
+				var it = albums[index];
+				var promise = getTracksForAlbum(it.album);
+				promise.then(function(tracks){
+					selectTrack(tracks.album);
+				});
+			} else {
+				console.log("Invalid input");
+				askSelectAlbum();
+			}
+		})
+	}
+	askSelectAlbum();
 }
 
 function addTrack(track, addNext){
