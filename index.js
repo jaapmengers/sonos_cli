@@ -132,8 +132,8 @@ cli.main(function(args, options){
 		}
 
 		if(options.current){
-			device.currentTrack(function(err, result){
-				console.log(result.artist + ' - ' + result.title);
+			device.currentTrackWithPlaylistData().then(function(track){
+				console.log(track.artist + ' - ' + track.title);
 				process.exit(0);
 			});
 		}
@@ -189,13 +189,20 @@ function selectAlbum(albums){
 	})
 }
 
-
-function addTrack(track){
+function addTrack(track, addNext){
 	var deferred = Q.defer();
 
-	device.enqueueSpotify(track).then(function(nr){
-		deferred.resolve(nr);
-	});
+	// If we want to play next, we first need to get the index of the current track
+	if(addNext)
+		device.currentTrackWithPlaylistData().then(function(currentTrack){
+			device.enqueueSpotify(track, currentTrack.trackNr).then(function(nr){
+					deferred.resolve(nr);
+			});
+		});
+	else
+		device.enqueueSpotify(track).then(function(nr){
+			deferred.resolve(nr);
+		});
 
 	return deferred.promise;
 }
@@ -215,22 +222,34 @@ function selectTrack(album){
 		console.log(parseInt(i) + 1 + '. ' + album.artist + ' - ' + track.name);
 	});
 
-	rl.question("\nSelect a track. Append 'p' to start playback at first added track (e.g. '3p'): ", function(answer){
-		function play(index, autoplay){
-			var track = index > 0 ? album.tracks[index - 1].href : album.href;
-			addTrack(track).then(function(nr){
-				if(autoplay){
-					playTrack(nr);
-				} else {
-					process.exit(0);
-				}
-			});
-		}
+	function askTrack(){
+		rl.question("\nSelect a track. Append 'p' to start playback at first added track (e.g. '3p'). Append 'q' to add the track(s) to the end of the queue: ", function(answer){
+			function play(index, addNext, autoplay){
+				var track = index > 0 ? album.tracks[index - 1].href : album.href;
 
-		var parseInput = answer.match(/(\d*)p/);
+				addTrack(track, addNext).then(function(nr){
+					if(autoplay){
+						playTrack(nr);
+					} else {
+						process.exit(0);
+					}
+				});
+			}
 
-		parseInput ? play(parseInt(parseInput[1]), true) : play(parseInt(answer), false);
-	});
+			var parseInput = answer.match(/^(\d)(.*)$/);
+			if(parseInput){
+				var queue = answer.indexOf('q') > -1;
+				var autoplay = answer.indexOf('p') > -1;
+
+				play(parseInt(parseInput[1]), !queue, autoplay);
+
+			} else {
+				console.log("\nNo valid input provided");
+				askTrack();
+			}
+		});
+	}
+	askTrack();
 }
 
 function getTracksForAlbum(album){
